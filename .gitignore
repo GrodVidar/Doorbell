@@ -9,6 +9,7 @@
 ## Custom ##
 .env
 .idea/
+*.h
 
 # User-specific stuff
 .idea/**/workspace.xml
