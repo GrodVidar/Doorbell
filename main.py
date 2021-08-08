@@ -1,29 +1,34 @@
 import socket
 import threading
-from pushbullet import Pushbullet
-from dotenv import load_dotenv
-import os
+import requests
+from keys import *
 
-def accept_connections():
+
+def pushover_notification(title, message):
+    url = 'https://api.pushover.net/1/messages.json'
+    params = {
+        'token': po_app_key,
+        'user': po_user_key,
+        'message': message,
+        'device': 'OP8',
+        'title': title
+    }
+    resp = requests.post(url, data=params)
+    print(resp.text)
+
+
+if __name__ == "__main__":
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    pushover_notification("Doorbell", "Initiated")
+    server.bind(('', 12345))
+    server.listen(5)
     while True:
         client, client_address = server.accept()
         print(f"{client_address} connected")
         c_online = True
         while c_online:
-            message = client.recv(1024).decode('utf-8')
-            print(message)
-            dev.push_note('Doorbell', message)
+            c_message = client.recv(1024).decode('utf-8')
+            print(c_message)
+            pushover_notification("Doorbell", c_message)
             client.close()
             c_online = False
-
-
-if __name__ == "__main__":
-    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    pb_key = os.getenv('PUSHBULLET_KEY')
-    pb = Pushbullet(pb_key)
-    dev = pb.get_device('OnePlus IN2023')
-    dev.push_note('Doorbell', 'activated')
-    server.bind(('', 12345))
-    server.listen(5)
-    acc_thread = threading.Thread(target=accept_connections)
-    acc_thread.start()
